@@ -50,6 +50,46 @@ class PlantByID(Resource):
 
 api.add_resource(PlantByID, '/plants/<int:id>')
 
+#PATCH request to update an existing plant
+
+@app.route('/plants/<int:id>', methods=['PATCH'])
+def update_plant(id):
+    data = request.get_json()
+    
+    # Fetch the plant object from the database
+    plant = Plant.query.filter_by(id=id).first()
+    
+    if not plant:
+        return make_response({"error": "Plant not found"}, 404)
+    
+    # Only update fields if they are provided in the request
+    if 'name' in data:
+        plant.name = data['name']
+    if 'image' in data:
+        plant.image = data['image']
+    if 'price' in data:
+        plant.price = data['price']
+    if 'is_in_stock' in data:
+        plant.is_in_stock = data['is_in_stock']
+
+    # Save the updated plant to the database
+    db.session.add(plant)
+    db.session.commit()
+
+    return make_response(plant.to_dict(), 200)
+
+
+#DELETE request to delete an existing plant n return a response of an empty string with status code 201(No content)
+@app.route('/plants/<int:id>', methods=['DELETE'])
+def delete_plant(id):
+    plant = Plant.query.filter_by(id=id).first()
+    db.session.delete(plant)
+    db.session.commit()
+
+    return make_response('', 201)
+
+
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
